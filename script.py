@@ -11,7 +11,7 @@ a = 1
 
 while True:
     # Запуск tcpdump
-    subprocess.Popen(['sudo','tcpdump', '-ni', 'eth0', 'port', '80', '-w', f'traffic{a}.pcap', '-v'])
+    subprocess.Popen(['sudo','tcpdump', '-ni', 'eth1', 'port', '80', '-w', f'traffic{a}.pcap', '-v'])
     
     # Ожидание 30 секунд
     time.sleep(30)
@@ -20,7 +20,7 @@ while True:
     subprocess.run(['pkill', 'tcpdump'])
     
     # Выполнение curl
-    subprocess.run(['curl', '-X', 'POST', 'http://localhost:3333/api/pcap/upload',
+    subprocess.run(['curl', '-X', 'POST', 'http://10.60.30.129:3333/api/pcap/upload',
                     '-H', 'Content-Type: multipart/form-data',
                     '-F', f'file=@traffic{a}.pcap',
                     '-F', 'flush_all=true'])
