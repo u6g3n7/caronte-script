@@ -1,22 +1,37 @@
 import os
 import time
 import subprocess
-from datetime import datetime
+import keyboard
 
 timestamp = 0
+should_continue = True
 
-while True:
+def stop_script():
+    global should_continue
+    should_continue = False
+
+
+keyboard.add_hotkey('ctrl+shift+x', stop_script)
+
+while should_continue:
     pcap_filename = f'traffic_{timestamp}.pcap'
     
-    tcpdump_process = subprocess.Popen(['sudo', 'tcpdump', '-i', 'enp2s0', '-w', pcap_filename, '-v'])
+    tcpdump_process = subprocess.Popen(['sudo', 'tcpdump', '-i', 'wlan0', '-w', pcap_filename, '-v']) # change ethetnet
     
-    time.sleep(30)
+
+    for _ in range(15):
+        time.sleep(1)
+        if not should_continue:
+            break
     
-    tcpdump_process.kill()
-    subprocess.run(['curl', '-X', 'POST', 'http://moznoporusski.ru:3333/api/pcap/upload',
-                    '-H', 'Content-Type: multipart/form-data',
-                    '-F', f'file=@{pcap_filename}',
-                    '-F', 'flush_all=true'])
+    tcpdump_process.terminate()
+    tcpdump_process.wait()
     
-    os.remove(pcap_filename)
-    timestamp += 1
+    if should_continue:
+        subprocess.run(['curl', '-X', 'POST', 'http://localhost:3333/api/pcap/upload', # change ip addres
+                        '-H', 'Content-Type: multipart/form-data',
+                        '-F', f'file=@{pcap_filename}',
+                        '-F', 'flush_all=true'])
+    
+        os.remove(pcap_filename)
+        timestamp += 1
